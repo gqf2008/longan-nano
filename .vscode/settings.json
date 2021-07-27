@@ -1,0 +1,10 @@
+    {
+        "editor.fontSize": 14,
+        "window.zoomLevel": 3,
+        "editor.formatOnSave": true,
+        "rust-analyzer.cargo.target": "riscv32imac-unknown-none-elf",
+        "rust-analyzer.checkOnSave.allTargets": false,
+        "rust-analyzer.enableCargoWatchOnStartup": "true", // 打开项目时自动开启 cargo watch
+        "rust-analyzer.highlightingOn": true, // 覆盖内建语法高亮
+        "rust-analyzer.lruCapacity": 1000, // 分析器最大缓存深度
+    }
