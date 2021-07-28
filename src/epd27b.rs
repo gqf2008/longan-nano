@@ -65,14 +65,16 @@ where
     DELAY: DelayMs<u32>,
 {
     pub fn new(spi: SPI, cs: CS, dc: DC, rst: RST, busy: BUSY, delay: DELAY) -> Self {
-        Self {
+        let mut this = Self {
             spi,
             cs,
             busy,
             dc,
             rst,
             delay,
-        }
+        };
+        this.init();
+        this
     }
     //Hardware reset
     pub fn reset(&mut self) {
@@ -112,6 +114,11 @@ where
             self.delay.delay_ms(20);
         }
         self.delay.delay_ms(20);
+    }
+
+    pub fn sleep(&mut self) {
+        self.send_command(0x10);
+        self.send_data(0x01);
     }
 
     pub fn turn_on_display(&mut self) {
@@ -218,10 +225,5 @@ where
 
     pub fn display(&mut self) {
         self.turn_on_display();
-    }
-
-    pub fn sleep(&mut self) {
-        self.send_command(0x10);
-        self.send_data(0x01);
     }
 }

@@ -1,6 +1,10 @@
 #![no_std]
 #![no_main]
 
+// use embedded_graphics::{
+//     pixelcolor::BinaryColor::On as Black, prelude::*, primitives::Line, primitives::PrimitiveStyle,
+//     text::Text,
+// };
 use embedded_graphics::{
     image::{Image, ImageRaw},
     mono_font::MonoTextStyleBuilder,
@@ -14,10 +18,7 @@ use embedded_graphics::{
 
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal::prelude::*;
-use epd_waveshare::{
-    epd2in7b_v2::{Display2in7b, Epd2in7b},
-    prelude::*,
-};
+use epd_waveshare::{epd2in7b_v2::Display2in7b, prelude::*};
 use gd32vf103xx_hal::pac::SPI1;
 use gd32vf103xx_hal::rcu::Rcu;
 use gd32vf103xx_hal::spi::{Spi, MODE_0};
@@ -70,29 +71,21 @@ fn main() -> ! {
         &mut rcu,
     );
     sprintln!("Epd2in7b init");
-    let mut epd =
-        Epd2in7b::new(&mut spi, pins.cs, pins.busy, pins.dc, pins.rst, &mut delay).unwrap();
+    let mut epd = epd27b::EPD27b::new(spi, pins.cs, pins.dc, pins.rst, pins.busy, delay);
     sprintln!("Epd2in7b init ok");
     sprintln!("clear frame");
-    epd.clear_frame(&mut spi, &mut delay);
+    epd.clear_white();
     sprintln!("clear frame ok");
     let mut bw = Display2in7b::default();
     bw.set_rotation(DisplayRotation::Rotate90);
     let mut red = Display2in7b::default();
     red.set_rotation(DisplayRotation::Rotate90);
-    draw_text_black(&mut bw, "Hello risc-v", 1, 5);
-    // epd.update_partial_frame(&mut spi, bw.buffer(), 1, 5, 100, 20)
-    //     .ok();
-    // epd.update_achromatic_frame(&mut spi, bw.buffer()).ok();
-    draw_text_red(&mut red, "\nHello e-paper", 1, 5);
-    //epd.update_partial_frame(&mut spi, red.buffer(), 1, 10, 100, 20)
-    // .ok();
-    // epd.update_and_display_frame(&mut spi, red.buffer(), &mut delay)
-    //     .ok();
-    epd.update_color_frame(&mut spi, bw.buffer(), red.buffer());
-    // //epd.update_chromatic_frame(&mut spi, red.buffer()).ok();
-    epd.display_frame(&mut spi, &mut delay).ok();
-
+    draw_text_black(&mut bw, "hello risc-v", 0, 5);
+    // epd.send_black(bw.buffer());
+    draw_text_red(&mut red, "\nhello e-paper", 0, 5);
+    // epd.send_red(bw.buffer());
+    // epd.display();
+    epd.display_all(bw.buffer(), red.buffer());
     let mut i = 0;
     loop {
         let inext = (i + 1) % leds.len();
@@ -119,7 +112,7 @@ fn draw_text_black(display: &mut Display2in7b, text: &str, x: i32, y: i32) {
         .ok();
 }
 fn draw_text_red(display: &mut Display2in7b, text: &str, x: i32, y: i32) {
-    display.clear_buffer(Color::White);
+    display.clear_buffer(Color::Black);
     let style = MonoTextStyleBuilder::new()
         .font(&embedded_graphics::mono_font::ascii::FONT_9X18_BOLD)
         .text_color(BinaryColor::Off)

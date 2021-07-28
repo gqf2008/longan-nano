@@ -1,6 +1,6 @@
 [target.riscv32imac-unknown-none-elf]
-#runner = 'riscv-none-embed-gdb -q -x openocd.gdb'
-runner = 'riscv-nuclei-elf-gdb -q -x openocd.gdb'
+runner = 'riscv64-unknown-elf-gdb -q -x openocd.gdb'
+#runner = 'riscv-nuclei-elf-gdb -q -x openocd.gdb'
 
 rustflags = [
   "-C", "link-arg=-Tmemory-cb.x",
