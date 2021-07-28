@@ -105,7 +105,7 @@ fn main() -> ! {
 }
 
 fn draw_text_black(display: &mut Display2in7b, text: &str, x: i32, y: i32) {
-    display.clear_buffer(Color::White);
+    display.clear_buffer(Color::Black);
     let style = MonoTextStyleBuilder::new()
         .font(&embedded_graphics::mono_font::ascii::FONT_9X18_BOLD)
         .text_color(BinaryColor::On)
@@ -119,7 +119,7 @@ fn draw_text_black(display: &mut Display2in7b, text: &str, x: i32, y: i32) {
         .ok();
 }
 fn draw_text_red(display: &mut Display2in7b, text: &str, x: i32, y: i32) {
-    display.clear_buffer(Color::White);
+    display.clear_buffer(Color::Black);
     let style = MonoTextStyleBuilder::new()
         .font(&embedded_graphics::mono_font::ascii::FONT_9X18_BOLD)
         .text_color(BinaryColor::On)
