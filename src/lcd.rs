@@ -67,18 +67,11 @@ pub fn configure(spi: SPI0, pins: LcdPins, afio: &mut Afio, rcu: &mut Rcu) -> Lc
     let mut cs = pins.cs;
     cs.set_low().unwrap();
 
-    let mut lcd = ST7735::new(
-        spi0, 
-        pins.dc, 
-        pins.rst, 
-        false, 
-        true, 
-        width, 
-        height);
+    let mut lcd = ST7735::new(spi0, pins.dc, pins.rst, false, true, width, height);
     let mut delay = McycleDelay::new(&rcu.clocks);
     lcd.init(&mut delay).unwrap();
     lcd.set_orientation(&Orientation::Landscape).unwrap();
     lcd.set_offset(1, 26);
 
     lcd
-    }
+}

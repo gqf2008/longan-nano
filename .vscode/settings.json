@@ -1,6 +1,6 @@
     {
         "editor.fontSize": 14,
-        "window.zoomLevel": 2,
+        "window.zoomLevel": 3,
         "editor.formatOnSave": true,
         "rust-analyzer.cargo.target": "riscv32imac-unknown-none-elf",
         "rust-analyzer.checkOnSave.allTargets": false,
