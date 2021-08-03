@@ -1,4 +1,4 @@
-target extended-remote :3333
+target extended-remote :7777
 #target remote COM5
 
 # print demangled symbols
