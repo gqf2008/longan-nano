@@ -9,6 +9,7 @@ use panic_halt as _;
 use embedded_graphics::mono_font::{ascii::FONT_10X20, MonoTextStyleBuilder};
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::*;
+
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
 use longan_nano::hal::delay::McycleDelay;
@@ -64,13 +65,13 @@ fn main() -> ! {
         &mut rcu,
     );
     let mut delay = McycleDelay::new(&rcu.clocks);
-    let mut trig = gpiob.pb10.into_push_pull_output_with_state(State::Low);
-    let echo = gpiob.pb11.into_pull_down_input(); // 下拉输入
+    let mut trig = gpioa.pa0.into_push_pull_output_with_state(State::Low);
+    let echo = gpioa.pa1.into_pull_down_input(); // 下拉输入
     let mut sensor = HcSr04::new(trig, echo, delay, rcu.clocks.sysclk().0 as u64);
 
     let lcd_pins = lcd_pins!(gpioa, gpiob);
     let mut lcd = lcd::configure(dp.SPI0, lcd_pins, &mut afio, &mut rcu);
-
+    lcd.set_orientation(&st7735_lcd::Orientation::LandscapeSwapped);
     let (width, height) = (lcd.size().width as i32, lcd.size().height as i32);
 
     // Clear screen
@@ -78,7 +79,6 @@ fn main() -> ! {
         .into_styled(PrimitiveStyle::with_fill(Rgb565::BLACK))
         .draw(&mut lcd)
         .unwrap();
-
     let style = MonoTextStyleBuilder::new()
         .font(&FONT_10X20)
         .text_color(Rgb565::WHITE)
@@ -88,8 +88,8 @@ fn main() -> ! {
     loop {
         let distance = sensor.measure();
         Text::new(
-            format!(" Dis {:.2}cm", distance.cm()).as_str(),
-            Point::new(0, 40),
+            format!("  {:.2}cm", distance.cm()).as_str(),
+            Point::new(0, 50),
             style,
         )
         .draw(&mut lcd)

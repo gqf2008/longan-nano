@@ -6,12 +6,14 @@ extern crate alloc;
 use alloc::format;
 use embedded_graphics::{
     image::{Image, ImageRaw},
-    mono_font::{ascii::FONT_10X20, MonoTextStyle},
+    mono_font::{ascii::FONT_10X20, MonoTextStyle, MonoTextStyleBuilder},
     pixelcolor::BinaryColor,
     pixelcolor::Rgb565,
     prelude::*,
     text::{Alignment, Text},
 };
+
+use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_hal::blocking::delay::DelayUs;
 use heapless::Vec;
 use longan_nano::hal::delay::McycleDelay;
@@ -21,11 +23,10 @@ use longan_nano::hal::{pac, prelude::*};
 use longan_nano::hcsr04::HcSr04;
 use longan_nano::heap::RISCVHeap;
 use longan_nano::{lcd, lcd_pins, sprintln};
+use mpu6050::*;
 use nalgebra::{matrix, vector};
 use panic_halt as _;
 use riscv_rt::entry;
-use ssd1306::prelude::*;
-use ssd1306::*;
 
 #[global_allocator]
 static ALLOCATOR: RISCVHeap = RISCVHeap::empty();
@@ -52,8 +53,6 @@ pub fn heap_start() -> *mut u32 {
 fn main() -> ! {
     init();
     let dp = pac::Peripherals::take().unwrap();
-
-    // Configure clocks
     let mut rcu = dp
         .RCU
         .configure()
@@ -73,7 +72,7 @@ fn main() -> ! {
         &mut rcu,
     );
     sprintln!("start {:#08x}", heap_start() as usize);
-    let mut trig = gpioa.pa0.into_push_pull_output(); // .into_push_pull_output_with_state(State::Low);
+    let mut trig = gpioa.pa0.into_push_pull_output_with_state(State::Low);
     let echo = gpioa.pa1.into_pull_down_input(); // 下拉输入
     let mut sensor = HcSr04::new(trig, echo, delay, rcu.clocks.sysclk().0 as u64);
     let scl = gpiob.pb6.into_alternate_open_drain();
@@ -92,39 +91,59 @@ fn main() -> ! {
         1000,
         1000,
     );
-    let mut display = Ssd1306::new(
-        I2CDisplayInterface::new(i2c),
-        DisplaySize128x64,
-        DisplayRotation::Rotate0,
-    )
-    .into_buffered_graphics_mode();
-    display.init().unwrap();
-    let (w, h) = display.dimensions();
-    let raw: ImageRaw<BinaryColor> = ImageRaw::new(include_bytes!("./sqb.raw"), 120);
 
-    Image::new(&raw, Point::new(4, 1))
-        .draw(&mut display)
+    sprintln!("init mpu6050");
+    let mut mpu = Mpu6050::new(i2c);
+    mpu.init(&mut delay).ok();
+    sprintln!("init mpu6050 ok");
+    let lcd_pins = lcd_pins!(gpioa, gpiob);
+    let mut lcd = lcd::configure(dp.SPI0, lcd_pins, &mut afio, &mut rcu);
+    lcd.set_orientation(&st7735_lcd::Orientation::LandscapeSwapped);
+    let (width, height) = (lcd.size().width as i32, lcd.size().height as i32);
+
+    // Clear screen
+    Rectangle::new(Point::new(0, 0), Size::new(width as u32, height as u32))
+        .into_styled(PrimitiveStyle::with_fill(Rgb565::BLACK))
+        .draw(&mut lcd)
         .unwrap();
-    display.flush().unwrap();
-    let style = MonoTextStyle::new(&FONT_10X20, BinaryColor::On);
+    let style = MonoTextStyleBuilder::new()
+        .font(&FONT_10X20)
+        .text_color(Rgb565::WHITE)
+        .background_color(Rgb565::BLACK)
+        .build();
 
     loop {
-        // led.toggle();
+        // get roll and pitch estimate
+        let rp = mpu.get_acc_angles().unwrap();
+        // sprintln!("r/p: {:?}", rp);
+
+        // // get temp
+        // let temp = mpu.get_temp().unwrap();
+        // sprintln!("temp: {:?}c", temp);
+
+        // get gyro data, scaled with sensitivity
+        let gyro = mpu.get_gyro().unwrap();
+        //sprintln!("gyro: {:?}", gyro);
+
+        // get accelerometer data, scaled with sensitivity
+        let acc = mpu.get_acc().unwrap();
+        //sprintln!("acc: {:?}", acc);
+
         let distance = sensor.measure();
-        //sprintln!("D {:.2}cm", distance.cm());
-        display.clear();
-        Image::new(&raw, Point::new(4, 1))
-            .draw(&mut display)
-            .unwrap();
-        Text::with_alignment(
-            format!("{:.2}cm", distance.cm()).as_str(),
-            Point::new(64, 60),
+        Text::new(
+            format!(
+                " {:.2}cm\n R/P:{:?}\n G:{:?} A:{:?}",
+                distance.cm(),
+                rp,
+                gyro,
+                acc
+            )
+            .as_str(),
+            Point::new(0, 10),
             style,
-            Alignment::Center,
         )
-        .draw(&mut display)
+        .draw(&mut lcd)
         .unwrap();
-        display.flush().unwrap();
     }
 }
 
