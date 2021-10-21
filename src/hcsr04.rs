@@ -1,5 +1,5 @@
 //!超声波测距传感器
-extern crate alloc;
+
 use crate::kalman::{LinearKalmanFilter, ScalarKalmanFilter};
 use alloc::vec;
 use embedded_hal::blocking::delay::DelayUs;
@@ -79,17 +79,6 @@ where
             d = self.filter.filter(tmp);
             self.delay.delay_us(10000u32);
         }
-        // let mut data = vec![dvector![0.0, 0.0, 0.0]; 3];
-        // data.iter_mut().for_each(|vec| {
-        //     vec.iter_mut().for_each(|v| {
-        //         *v = self.measure1();
-        //     });
-        // });
-        // //crate::sprintln!("kfilter {:?}", data);
-        // let run_filter = self.kfilter.filter(&data);
-        //let run_smooth = self.kfilter.smooth(&run_filter.0, &run_filter.1);
-        //crate::sprintln!("kfilter {:?} ok", data);
-        //let tmp = self.measure1();
         Distance(d)
     }
 

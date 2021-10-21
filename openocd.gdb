@@ -1,5 +1,4 @@
 target extended-remote :7777
-#target remote COM5
 
 # print demangled symbols
 set print asm-demangle on

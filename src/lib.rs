@@ -2,7 +2,7 @@
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-
+extern crate alloc;
 pub use gd32vf103xx_hal as hal;
 
 pub mod epd27b;

@@ -132,11 +132,16 @@ fn main() -> ! {
         let distance = sensor.measure();
         Text::new(
             format!(
-                " {:.2}cm\n R/P:{:?}\n G:{:?} A:{:?}",
+                " {:.2}cm\n R/P:{:.2},{:.2}\n G:{:.2},{:.2},{:.2}\n A:{:.2},{:.2},{:.2}",
                 distance.cm(),
-                rp,
-                gyro,
-                acc
+                rp[0],
+                rp[1],
+                gyro[0],
+                gyro[1],
+                gyro[2],
+                acc[0],
+                acc[1],
+                acc[2]
             )
             .as_str(),
             Point::new(0, 10),
